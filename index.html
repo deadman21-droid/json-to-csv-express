@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON to CSV Express</title>
+    
+    <!-- SEO Básico e Indexación -->
+    <meta name="description" content="Convert JSON data or nested APIs into clean CSV tables instantly with 100% client-side privacy. Fast, secure online JSON to CSV converter.">
+    <meta name="keywords" content="json to csv, convert json to csv, json converter online, nested json to csv, api data to excel">
+    <link rel="canonical" href="https://json-to-csv-express.vercel.app/">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Redes Sociales y Directorios -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://json-to-csv-express.vercel.app/">
+    <meta property="og:title" content="JSON to CSV Express - Instant & Private JSON Converter">
+    <meta property="og:description" content="Convert JSON files into clean CSV tables instantly in your browser. 100% private, fast, and secure.">
+    <meta property="og:image" content="https://json-to-csv-express.vercel.app/og-image.png">
+
+    <!-- Twitter / X Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://json-to-csv-express.vercel.app/">
+    <meta name="twitter:title" content="JSON to CSV Express - Instant & Private JSON Converter">
+    <meta name="twitter:description" content="Convert JSON files into clean CSV tables instantly in your browser.">
+    <meta name="twitter:image" content="https://json-to-csv-express.vercel.app/og-image.png">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-light: #64748b;
+            --border-color: #cbd5e1;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 24px;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .btn-stripe {
+            background-color: #635bff;
+            color: white;
+            display: block;
+            margin-bottom: 20px;
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .btn-stripe:hover {
+            background-color: #51499d;
+        }
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+        .upload-area:hover {
+            border-color: var(--primary);
+        }
+        #json-file {
+            display: none;
+        }
+        #csv-output {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            background-color: #f1f5f9;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        button, .btn-stripe {
+            transition: background-color 0.2s;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            flex: 1;
+        }
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JSON to CSV Express</h1>
+        <p class="subtitle">Convert JSON datasets or API payloads into clean CSV tables instantly with 100% client-side privacy.</p>
+        
+        <a href="https://buy.stripe.com/28E9AL51N3fgdo18Kgc7u03" target="_blank" class="btn-stripe">🚀 Unlock Unlimited Access - €4.99</a>
+
+        <label class="upload-area" id="drop-zone">
+            <span id="file-label">📁 Click here or drag and drop your JSON file</span>
+            <input type="file" id="json-file" accept=".json">
+        </label>
+
+        <textarea id="csv-output" placeholder="Your formatted CSV output will appear here..." readonly></textarea>
+
+        <div class="btn-group">
+            <button id="copy-btn" onclick="copyCSV()">Copy CSV</button>
+            <button id="download-btn" onclick="downloadCSV()">Download .csv</button>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('json-file');
+        const fileLabel = document.getElementById('file-label');
+        const csvOutput = document.getElementById('csv-output');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileLabel.textContent = '📄 ' + file.name;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const text = event.target.result;
+                        const jsonData = JSON.parse(text);
+                        const csvResult = convertJsonToCsv(jsonData);
+                        csvOutput.value = csvResult;
+                    } catch (err) {
+                        csvOutput.value = 'Error: Invalid JSON format.';
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function convertJsonToCsv(data) {
+            let items = Array.isArray(data) ? data : [data];
+            if (items.length === 0) return '';
+
+            const keys = [...new Set(items.flatMap(item => Object.keys(item)))];
+            let csv = keys.join(',') + '\n';
+
+            items.forEach(row => {
+                const values = keys.map(key => {
+                    let val = row[key] !== undefined && row[key] !== null ? row[key] : '';
+                    if (typeof val === 'object') {
+                        val = JSON.stringify(val);
+                    }
+                    val = String(val).replace(/"/g, '""');
+                    return `"${val}"`;
+                });
+                csv += values.join(',') + '\n';
+            });
+
+            return csv;
+        }
+
+        function copyCSV() {
+            if (!csvOutput.value) return;
+            navigator.clipboard.writeText(csvOutput.value).then(() => {
+                const btn = document.getElementById('copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = originalText, 2000);
+            });
+        }
+
+        function downloadCSV() {
+            if (!csvOutput.value) return;
+            const blob = new Blob([csvOutput.value], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'data.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
